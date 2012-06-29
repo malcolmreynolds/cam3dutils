@@ -4,6 +4,32 @@ import numpy as np
 import homog_tform as ht
 
 
+def switch_to_figure_or_create_new(fig):
+    """If fig is a number then assume that indicates a figure and switch to it.
+    Otherwise create a new one and return that."""
+    if fig == None:
+        return plt.figure()
+    else:
+        return plt.figure(fig)
+
+
+def get_3d_axis(fig=None):
+    """Get 3D axes on which to do plotting using the mplot3d library.
+    If no figure is provided, create a new one."""
+    fig = switch_to_figure_or_create_new(fig)
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    return ax
+
+
+def draw_camera(ax, inverse_ext, label_string=None, aspect_ratio=4 / 3.0, scale=40, dotted=False):
+    draw_cam_frustum(ax, inverse_ext, label_string=label_string, aspect_ratio=aspect_ratio,
+                     scale=scale, dotted=dotted)
+    draw_axes_spikes(ax, inverse_ext, scale=scale)
+
+
 def draw_cam_frustum(ax, inverse_ext, label_string=None, aspect_ratio=4 / 3.0, scale=40, dotted=False):
     """Draw a traditional camera frustum / rectangular pyramid ting to show where
     the camera is."""
@@ -26,8 +52,13 @@ def draw_cam_frustum(ax, inverse_ext, label_string=None, aspect_ratio=4 / 3.0, s
     if dotted:
         col = 'k--'
     ax.plot(pts_to_plot[0, :], pts_to_plot[1, :], pts_to_plot[2, :], col)
-    if label_string:
-        ax.text(pts_to_plot[0, 0], pts_to_plot[0, 1], pts_to_plot[0, 2], label_string)
+    if label_string is not None:
+        # import pdb; pdb.set_trace()
+        px = pts_to_plot[0, 0]
+        py = pts_to_plot[1, 0]
+        pz = pts_to_plot[2, 0]
+        # print "plotting", label_string, " at", px, py, pz
+        ax.text(px, py, pz, label_string)
 
 
 def draw_feature_visible_line(ax, homog_direction, inverse_ext, label_string=None, length=2000):
