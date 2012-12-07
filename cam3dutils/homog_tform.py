@@ -116,7 +116,8 @@ def compose(toa, tab):
 def apply(tform, points):
     # Concatenate a layer of ones to convert into homogeneous points, apply
     # the transform, then convert back into 3D cartesians and return
-    points_hom = tform * np.vstack((points, np.ones((1, points.shape[1]))))
+    points_hom = np.dot(tform, np.vstack((points,
+                                          np.ones((1, points.shape[1])))))
     return np.array(points_hom[0:3, :] / np.tile(points_hom[3, :], (3, 1)))
 
 

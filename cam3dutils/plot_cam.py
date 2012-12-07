@@ -9,18 +9,21 @@ def switch_to_figure_or_create_new(fig):
     Otherwise create a new one and return that."""
     if fig == None:
         return plt.figure()
-    else:
+    try:
         return plt.figure(fig)
+    except TypeError:
+        # Probably means we have been passed a figure rather than a figure index
+        return plt.figure(fig.number)
 
 
-def get_3d_axis(fig=None):
+def get_3d_axis(fig=None, xlabel='x', ylabel='y', zlabel='z'):
     """Get 3D axes on which to do plotting using the mplot3d library.
     If no figure is provided, create a new one."""
     fig = switch_to_figure_or_create_new(fig)
     ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_zlabel(zlabel)
     return ax
 
 
