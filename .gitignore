@@ -4,3 +4,4 @@
 /dists/
 
 /*.egg-info
+dist/

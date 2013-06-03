@@ -8,7 +8,7 @@ setup(name='cam3dutils',
       author_email='malcolm.reynolds@gmail.com',
       license='BSD',
       packages=['cam3dutils'],
-      install_rquires=[
+      install_requires=[
           'numpy',
           'scipy',
           'matplotlib',

@@ -13,7 +13,7 @@ def rodrigues_vec_to_mtx(k):
     try:
         if np.allclose(k, np.zeros((3,))) or theta < np.finfo(k.dtype).eps:
             #rotation angle too small to care about
-            return np.matrix(np.eye(3))
+            return np.eye(3)
     except ValueError:
         # This means we tried to call np.finfo on non-inexact data
         # (ie floats). Either way, we know our vector is some distance
@@ -27,7 +27,7 @@ def rodrigues_vec_to_mtx(k):
                              [ norm_k[2],          0, -norm_k[0]],
                              [-norm_k[1],  norm_k[0],         0]])
     # This must give us a square matrix!
-    kkT = np.matrix(norm_k).T * np.matrix(norm_k)
+    kkT = np.dot(norm_k.T, norm_k)
 
     R = np.eye(3) +  \
         s_thet * cross_prod_k +  \
@@ -74,7 +74,7 @@ def rodrigues_mtx_to_vec(m):
     # print "mvec =",mvec
     syn = ((mvec > 1e-4) - (mvec < -1e-4)).astype(np.int64)  # robust sign() function - convert from bool to int
     # print "syn =",syn
-    hash_val = np.matrix(syn) * np.matrix([9, 3, 1]).T  # vector product here
+    hash_val = np.dot(syn, np.array([9, 3, 1]).T)  # vector product here
     # print "hash = ", hash_val
     idx = np.nonzero(hash_val[0] == hashvec)
     svec = np.asarray(Smat[idx[0], :])
@@ -122,7 +122,7 @@ def apply(tform, points):
 
 
 def tform(r=np.eye(3), t=np.zeros((3, 1))):
-    return np.matrix(np.vstack((np.hstack((r, t)), np.matrix([0, 0, 0, 1]))))
+    return np.vstack((np.hstack((r, t)), np.array([0, 0, 0, 1])))
 
 
 def tform_translational_diff(t1, t2):
@@ -152,7 +152,7 @@ def invert_tform(tform):
 
 def rel_tform_between(a, b):
     "Returns a transformation T_{a->b} which takes you from A to B"
-    return np.linalg.inv(np.asmatrix(a)) * np.asmatrix(b)
+    return np.dot(np.linalg.inv(a), b)
 
 
 def rel_tform_between_vecs(a_v, b_v):
@@ -182,8 +182,8 @@ if __name__ == "__main__":
 
         def test_rodrigues(self):
             self.assertTrue(np.allclose(rodrigues_vec_to_mtx(np.array([1, 2, 3])),
-                                     np.matrix([[-0.69492056,  0.71352099,  0.08929286],
-                                                [-0.19200697, -0.30378504,  0.93319235],
-                                                [0.69297817,    0.6313497,  0.34810748]])))
-
+                                        np.array([[-0.69492056,  0.71352099,  0.08929286],
+                                                 [-0.19200697, -0.30378504,  0.93319235],
+                                                 [0.69297817,    0.6313497,  0.34810748]])))
+ 
     unittest.main()

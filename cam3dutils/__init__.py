@@ -1,2 +1,2 @@
-import .homog_tform as ht
-import .plot_cam as pc
+from homog_tform import *
+import plot_cam as pc
