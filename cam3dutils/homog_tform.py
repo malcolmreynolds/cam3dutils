@@ -91,7 +91,7 @@ def vec_to_tform(vec):
 
     tform_upper_part = np.hstack((rodrigues_vec_to_mtx(vec[3:6]), np.matrix(vec[0:3]).T))
     # print "tform_upper =", tform_upper_part
-    return np.vstack((tform_upper_part, np.matrix([0, 0, 0, 1])))
+    return np.vstack((tform_upper_part, np.array([0, 0, 0, 1])))
 
 
 def tform_to_vec(tform):
@@ -104,12 +104,12 @@ def tform_to_vec(tform):
 
 def identity():
     " Identity 4x4 homogeneous transform"
-    return np.matrix(np.eye(4))
+    return np.eye(4)
 
 
 def compose(toa, tab):
     """Compose two transforms"""
-    tob = np.asmatrix(toa) * tab
+    tob = np.dot(toa, tab)
     return tob
 
 
@@ -142,7 +142,7 @@ def rand_rot_tform(rscale=1):
 
 def rand_tform(tscale=1, rscale=1):
     return tform(rodrigues_vec_to_mtx(rscale * np.random.randn(3)), \
-                 rscale * np.random.randn(3, 1))
+                 tscale * np.random.randn(3, 1))
 
 
 def invert_tform(tform):
