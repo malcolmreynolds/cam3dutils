@@ -1,7 +1,7 @@
 from mpl_toolkits.mplot3d import Axes3D  # Needed! do not remove, despite
 import matplotlib.pyplot as plt
 import numpy as np
-import homog_tform as ht
+import transformations as tform
 
 
 def switch_to_figure_or_create_new(fig):
@@ -49,7 +49,7 @@ def draw_cam_frustum(ax, inverse_ext, label_string=None, aspect_ratio=4 / 3.0, s
     indices = [0, 1, 5, 0, 2, 5, 0, 3, 5, 0, 4, 5, 1, 2, 3, 4, 1]
 
     # import pdb; pdb.set_trace()
-    pts_transformed = ht.apply(inverse_ext, points)
+    pts_transformed = tform.apply_transform(inverse_ext, points)
     pts_to_plot = np.asarray(pts_transformed[:, indices])
     col = "k-"  # solid line by default
     if dotted:
@@ -68,7 +68,7 @@ def draw_feature_visible_line(ax, homog_direction, inverse_ext, label_string=Non
     """Given some 3D axes a direction for the ray, plus the extrinsics
     matrix, plot the ray in 3D"""
     coords = np.hstack((np.zeros((3, 1)), length * homog_direction.reshape(3, 1)))
-    coords = ht.apply(inverse_ext, coords)
+    coords = tform.apply_transform(inverse_ext, coords)
     if label_string:
         ax.plot(coords[0, :], coords[1, :], coords[2, :], 'b', label=label_string)
     else:
@@ -80,7 +80,7 @@ def draw_axes_spikes(ax, ext, scale=50):
     pts = np.array([[0, s, 0, 0],
                     [0, 0, s, 0],
                     [0, 0, 0, s]])
-    pts_tformed = ht.apply(ext, pts)
+    pts_tformed = tform.apply_transform(ext, pts)
 
     for idx, col in zip([[0, 1], [0, 2], [0, 3]], ['r-', 'g-', 'b-']):
         ax.plot(pts_tformed[0, idx], pts_tformed[1, idx], pts_tformed[2, idx], col)

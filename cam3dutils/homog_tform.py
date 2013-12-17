@@ -1,90 +1,23 @@
 import numpy as np
 from scipy.linalg import norm
-# Homogeneous 4x4 transforms
+import cv2  # Need opencv for Rodrigues, my implementation wasn't working
 
+"""Homogeneous 4x4 transforms"""
 
-def rodrigues_vec_to_mtx(k):
-    """Converts 3 element vector into 3x3 rotation, see
-    http://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula"""
-    if k.shape != (3,):
-        raise ValueError("vec should be a 3 element vector")
-    theta = norm(k)
+def rodrigues_vec_to_mtx(rot_vec):
+    if rot_vec.shape != (3,):
+        raise ValueError("rot_vec should be a 3 element vector")
 
-    try:
-        if np.allclose(k, np.zeros((3,))) or theta < np.finfo(k.dtype).eps:
-            #rotation angle too small to care about
-            return np.eye(3)
-    except ValueError:
-        # This means we tried to call np.finfo on non-inexact data
-        # (ie floats). Either way, we know our vector is some distance
-        # from [0,0,0] so we can just carry on.
-        pass
+    rot_mtx, jacobian = cv2.Rodrigues(rot_vec)
+    return rot_mtx
 
-    norm_k = k / theta
-    s_thet = np.sin(theta)
-    c_thet = np.cos(theta)
-    cross_prod_k = np.array([[         0, -norm_k[2],  norm_k[1]],
-                             [ norm_k[2],          0, -norm_k[0]],
-                             [-norm_k[1],  norm_k[0],         0]])
-    # This must give us a square matrix!
-    kkT = np.dot(norm_k.T, norm_k)
-
-    R = np.eye(3) +  \
-        s_thet * cross_prod_k +  \
-        (1.0 - c_thet) * (kkT - np.eye(3))
-    return R
-
-
-#see http://en.wikipedia.org/wiki/Axis_angle#Log_map_from_SO.283.29_to_so.283.29
-def rodrigues_mtx_to_vec(m):
-    if m.shape != (3, 3):
+def rodrigues_mtx_to_vec(rot_mtx):
+    if rot_mtx.shape != (3, 3):
         raise ValueError("Expected a 3x3 matrix")
-    [u, s, v] = np.linalg.svd(m)
-    r = np.dot(u, v)
-    trace_r = (np.trace(r) - 1) / 2.0
-    theta = np.arccos(trace_r)
 
-    if np.sin(theta) > 1e-4:
-        normaliser = 1.0 / (2 * np.sin(theta))
-        omega = np.array([r[2, 1] - r[1, 2],
-                          r[0, 2] - r[2, 0],
-                          r[1, 0] - r[0, 1]])
-        return normaliser * omega * theta
+    rot_vec, jacobian = cv2.Rodrigues(rot_mtx)
 
-    # When we are here, sin(theta) is very small
-    if trace_r > 0:
-        return np.array([0, 0, 0])  # No rotation
-
-    # print "doing dodgy bit on r="
-    # print r
-    # This is all taken from bouguet - apparently written by Mike Burl
-    hashvec = np.array([0, -1, -3, -9, 9, 3, 1, 13, 5, -7, -11])
-    Smat = np.array([[1, 1, 1], [1, 0, -1], [0, 1, -1], [1, -1, 0],
-                     [1, 1, 0], [0, 1, 1], [1, 0, 1], [1, 1, 1],
-                     [1, 1, -1], [1, -1, -1],  [1, -1, 1]])
-
-    M = (m + np.eye(3)) / 2.0
-    # print "m = "
-    # print M
-    uabs = np.sqrt(M[0, 0])
-    vabs = np.sqrt(M[1, 1])
-    wabs = np.sqrt(M[2, 2])
-
-    mvec = np.matrix([M[0, 1], M[1, 2], M[0, 2]])
-    # print "mvec =",mvec
-    syn = ((mvec > 1e-4) - (mvec < -1e-4)).astype(np.int64)  # robust sign() function - convert from bool to int
-    # print "syn =",syn
-    hash_val = np.dot(syn, np.array([9, 3, 1]).T)  # vector product here
-    # print "hash = ", hash_val
-    idx = np.nonzero(hash_val[0] == hashvec)
-    svec = np.asarray(Smat[idx[0], :])
-    # print "svec = ", svec
-
-    tmp = np.array([uabs, vabs, wabs])
-    # print "tmp = ",tmp
-
-    return (theta * tmp * svec).squeeze()
-
+    return rot_vec.squeeze()
 
 def vec_to_tform(vec):
     "Converts a transform in 6 degrees of freedom to a 4x4 homogeneous transform"
@@ -107,10 +40,10 @@ def identity():
     return np.eye(4)
 
 
-def compose(toa, tab):
-    """Compose two transforms"""
-    tob = np.dot(toa, tab)
-    return tob
+def compose(*tforms):
+    """Compose two or more transforms"""
+    return reduce(lambda i, j: np.dot(i, j), tforms)
+
 
 
 def apply(tform, points):
@@ -145,7 +78,7 @@ def rand_tform(tscale=1, rscale=1):
                  tscale * np.random.randn(3, 1))
 
 
-def invert_tform(tform):
+def invert(tform):
     """Inverts a 4x4 transform"""
     return np.linalg.inv(tform)
 
